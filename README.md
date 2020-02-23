@@ -34,6 +34,6 @@ Change them to fit in your GPU according to your VRAM(>=6 GB recommended).
 Conditional GAN is for the time being slightly unstable.
 ## Examples
 MNIST
-![mnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/Screenshot%20from%202020-02-23%2017-02-01.png)
+![mnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/mnist1.png)
 Fashion-MNIST
 
