@@ -10,7 +10,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 flags.DEFINE_string("model", 'BigBiGAN', 'Model to use (BigBiGAN|')
-flags.DEFINE_string("dataset",'mnist','Dataset (mnist|fashion_mnist)')
+flags.DEFINE_string("dataset",'cifar10','Dataset (mnist|fashion_mnist|cifar10)')
 flags.DEFINE_integer('num_classes', 10, 'Numbers of classes in the dataset')
 flags.DEFINE_string('dataset_path', './tensorflow_datasets','Path for saving dataset.')
 flags.DEFINE_string('result_path', './results','Path for saving results.')
@@ -21,7 +21,7 @@ flags.DEFINE_bool('cache_dataset', False, 'cache dataset (True|False).')
 flags.DEFINE_string('device', 'GPU', 'Device using now(CPU|GPU)')
 
 flags.DEFINE_integer('gen_disc_ch',64,'Number of channels in the first layer of generator and discriminator_f.')
-flags.DEFINE_integer('en_ch',16,'Number of channels in the first layer of encoder.')
+flags.DEFINE_integer('en_ch',32,'Number of channels in the first layer of encoder.')
 
 flags.DEFINE_float('lr_gen_en',2e-4,'Learning rate generator.')
 flags.DEFINE_float('beta_1_gen_en',0.5,'Beta_1 of Generator optimizer.')
@@ -38,11 +38,6 @@ flags.DEFINE_integer('num_epochs', 50 ,'Number of epochs to train.')
 flags.DEFINE_integer('num_cont_noise', 100, 'Dimension of continous noise vector.')
 flags.DEFINE_bool('conditional', True, 'Conditional or unconditional GAN')
 flags.DEFINE_integer('num_emb', 10, 'Dimension of embedded label output. Only applicable when conditional')
-
-
-
-flags.DEFINE_bool('ortho_reg', False, 'On or off of the orthogonal_regularizer (True|False).')
-
 
 
 def main(argv):

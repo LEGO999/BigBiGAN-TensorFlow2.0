@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def disc_loss(real_f_output, real_h_output, real_j_output, fake_f_output, fake_h_output, fake_j_output):
 
     real_loss = tf.reduce_mean(tf.nn.relu(tf.ones_like(real_f_output) - real_f_output)

@@ -23,7 +23,7 @@ def train(config, gen, disc_f, disc_h, disc_j, model_en, train_data):
     fixed_z, fixed_c = get_fixed_random(config, num_to_generate=100)  # fixed_noise is just used for visualization.
 
     # Define metric
-    metric_loss_gen_en = tf.keras.metrics.Mean() # Create a new instance of the class Mean
+    metric_loss_gen_en = tf.keras.metrics.Mean()
     metric_loss_disc = tf.keras.metrics.Mean()
 
     # Start training
@@ -40,24 +40,22 @@ def train(config, gen, disc_f, disc_h, disc_j, model_en, train_data):
         # Save results
         logging.info(f'Epoch {epoch+1}: Disc_loss: {metric_loss_disc.result()}, Gen_loss: {metric_loss_gen_en.result()}, Time: {epoch_time}')
         with summary_writer.as_default():
-            tf.summary.scalar('Gen and en loss',metric_loss_gen_en.result(),step=epoch)
+            tf.summary.scalar('Generator and Encoder loss',metric_loss_gen_en.result(),step=epoch)
             tf.summary.scalar('Discriminator loss', metric_loss_disc.result(),step=epoch)
 
-        metric_loss_gen_en.reset_states() # Resets all of the metric state variables.
-        # This function is called between epochs/steps, when a metric is evaluated during training.
+        metric_loss_gen_en.reset_states()
+
         metric_loss_disc.reset_states()
         # Generate images
-        gen_image = generate_images(gen, fixed_z, fixed_c, config) # Using fixed_nosie to generate image.
-        # Please check generate_images in misc.py
+        gen_image = generate_images(gen, fixed_z, fixed_c, config)
         with summary_writer.as_default():
-            tf.summary.image('Generated Images', tf.expand_dims(gen_image,axis=0),step=epoch) # Write an image summary.
+            tf.summary.image('Generated Images', tf.expand_dims(gen_image,axis=0),step=epoch)
 
 
 def train_epoch(train_data, gen,disc_f, disc_h, disc_j, model_en, disc_optimizer,gen_en_optimizer,
                 metric_loss_disc, metric_loss_gen_en, batch_size, cont_dim, config):
     if config.conditional:
         for image, label in train_data:
-            # label = tf.one_hot(label, depth=config.num_classes, dtype=tf.float32)
             train_step(image, label, gen, disc_f, disc_h, disc_j, model_en, disc_optimizer, gen_en_optimizer,
                        metric_loss_disc, metric_loss_gen_en, batch_size, cont_dim, config)
     else:
@@ -70,6 +68,7 @@ def train_epoch(train_data, gen,disc_f, disc_h, disc_j, model_en, disc_optimizer
 def train_step(image, label, gen, disc_f, disc_h, disc_j, model_en, disc_optimizer, gen_en_optimizer, metric_loss_disc,
                metric_loss_gen_en, batch_size, cont_dim, config):
     print('Graph will be traced...')
+
     with tf.device('{}:*'.format(config.device)):
         for _ in range(config.D_G_ratio):
             fake_noise = tf.random.truncated_normal([batch_size, cont_dim])
@@ -87,14 +86,14 @@ def train_step(image, label, gen, disc_f, disc_h, disc_j, model_en, disc_optimiz
                     d_loss = disc_loss(real_f_score, real_h_score, real_j_score, fake_f_score, fake_h_score, fake_j_score)
                     g_e_loss = gen_en_loss(real_f_score, real_h_score, real_j_score, fake_f_score, fake_h_score, fake_j_score)
 
-            grad_disc_f = disc_tape.gradient(d_loss, disc_f.trainable_variables+disc_h.trainable_variables+disc_j.trainable_variables)
+            grad_disc = disc_tape.gradient(d_loss, disc_f.trainable_variables+disc_h.trainable_variables+disc_j.trainable_variables)
 
-            disc_optimizer.apply_gradients(zip(grad_disc_f, disc_f.trainable_variables+disc_h.trainable_variables+disc_j.trainable_variables))
+            disc_optimizer.apply_gradients(zip(grad_disc, disc_f.trainable_variables+disc_h.trainable_variables+disc_j.trainable_variables))
             metric_loss_disc.update_state(d_loss)  # upgrade the value in metrics for single step.
 
-        grad_gen = gen_en_tape.gradient(g_e_loss, gen.trainable_variables)
+        grad_gen_en = gen_en_tape.gradient(g_e_loss, gen.trainable_variables + model_en.trainable_variables)
 
-        gen_en_optimizer.apply_gradients(zip(grad_gen, gen.trainable_variables + model_en.trainable_variables))
+        gen_en_optimizer.apply_gradients(zip(grad_gen_en, gen.trainable_variables + model_en.trainable_variables))
         metric_loss_gen_en.update_state(g_e_loss)
 
         del gen_en_tape, en_tape
