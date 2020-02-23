@@ -41,3 +41,6 @@ Stochastic encoder
 ## Acknowledegement
 BigGAN https://github.com/taki0112/BigGAN-Tensorflow  
 RevNet https://github.com/google/revisiting-self-supervised
+
+## Authors
+- ZHONG Liangyu, https://github.com/LEGO999
