@@ -38,6 +38,7 @@ Fashion-MNIST
 ![mnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/fmnist1.png)
 ## To do list
 Stochastic encoder
+Projection discriminator
 ## Acknowledegement
 BigGAN https://github.com/taki0112/BigGAN-Tensorflow  
 RevNet https://github.com/google/revisiting-self-supervised
