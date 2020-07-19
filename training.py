@@ -46,23 +46,18 @@ def train(config, gen, disc_f, disc_h, disc_j, model_en, train_data):
         metric_loss_gen_en.reset_states()
 
         metric_loss_disc.reset_states()
-        # Generate images
-        gen_image = generate_images(gen, fixed_z, fixed_c, config)
+        # Generated images and reconstructed images
+        gen_image  = generate_images(gen, fixed_z, fixed_c, config)
         with summary_writer.as_default():
             tf.summary.image('Generated Images', tf.expand_dims(gen_image,axis=0),step=epoch)
 
-
 def train_epoch(train_data, gen,disc_f, disc_h, disc_j, model_en, disc_optimizer,gen_en_optimizer,
                 metric_loss_disc, metric_loss_gen_en, batch_size, cont_dim, config):
-    if config.conditional:
-        for image, label in train_data:
-            train_step(image, label, gen, disc_f, disc_h, disc_j, model_en, disc_optimizer, gen_en_optimizer,
-                       metric_loss_disc, metric_loss_gen_en, batch_size, cont_dim, config)
-    else:
-        for image, _ in train_data:
+    for image, label in train_data:
+        if not config.conditional:
             label = None
-            train_step(image, label, gen, disc_f, disc_h, disc_j, model_en, disc_optimizer, gen_en_optimizer,
-                       metric_loss_disc, metric_loss_gen_en, batch_size, cont_dim, config)
+        train_step(image, label, gen, disc_f, disc_h, disc_j, model_en, disc_optimizer, gen_en_optimizer,
+                   metric_loss_disc, metric_loss_gen_en, batch_size, cont_dim, config)
 
 @tf.function
 def train_step(image, label, gen, disc_f, disc_h, disc_j, model_en, disc_optimizer, gen_en_optimizer, metric_loss_disc,

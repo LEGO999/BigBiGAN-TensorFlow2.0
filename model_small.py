@@ -8,13 +8,15 @@ class BIGBIGAN_G(tf.keras.Model):
         super().__init__()
         with tf.device('{}:*'.format(config.device)):
             with tf.name_scope('generator'):
-                if config.dataset == 'mnist' or config.dataset == 'fashion_mnist':  # color channel of the dataset
+                if config.dataset in ['mnist', 'fashion_mnist']:  # color channel of the dataset
                     self.c_dim = 1
                 else:
                     self.c_dim = 3
                 self.weight_init = weight_init
                 self.num_cont_noise = config.num_cont_noise
                 self.ch = config.gen_disc_ch * 4
+                if config.conditional:
+                    self.emb = tf.keras.layers.Embedding(config.num_classes, config.num_emb)
                 self.dense0 = ops.SpectralNormalization(Dense(units=4 * 4 * self.ch,
                                                               use_bias=True,
                                                               kernel_initializer=self.weight_init,
@@ -34,11 +36,9 @@ class BIGBIGAN_G(tf.keras.Model):
                                                                        kernel_initializer=self.weight_init,
                                                                        kernel_regularizer=ops.weight_regularizer), config=config)
 
-
     def __call__(self, cont_noise, label=None, training=False):
 
-
-        z_split = tf.split(cont_noise, num_or_size_splits=[25] * 4, axis=-1)
+        z_split = tf.split(cont_noise, num_or_size_splits=[self.num_cont_noise//4] * 4, axis=-1)
 
         n_split_0 = z_split[0]
         n_split_1 = z_split[1]
@@ -46,7 +46,7 @@ class BIGBIGAN_G(tf.keras.Model):
         n_split_3 = z_split[3]
 
         if label is not None:
-            label = tf.one_hot(label, depth=10)
+            label = self.emb(label)
             n_split_1 = tf.concat([z_split[1], label], axis=-1)
             n_split_2 = tf.concat([z_split[2], label], axis=-1)
             n_split_3 = tf.concat([z_split[3], label], axis=-1)
@@ -66,13 +66,12 @@ class BIGBIGAN_G(tf.keras.Model):
         l5 = self.bn0(l5, training=training)
         l5 = tf.nn.relu(l5)
 
-        l7 = self.conv0(l5)
+        l6 = self.conv0(l5)
 
         # Output layer
-        output = tf.nn.sigmoid(l7)
+        output = tf.nn.sigmoid(l6)
 
         return output
-
 
 
 class BIGBIGAN_D_F(tf.keras.Model):
@@ -80,29 +79,23 @@ class BIGBIGAN_D_F(tf.keras.Model):
         super().__init__()
         with tf.device('{}:*'.format(config.device)):
             with tf.name_scope('discriminator_f'):
-                if config.conditional:
-                    self.dense_emb = tf.keras.layers.Dense(1024)
                 self.weight_init = weight_init
                 self.ch = config.gen_disc_ch
+                if config.conditional:
+                    self.emb = tf.keras.layers.Embedding(config.num_classes, self.ch*4)
                 self.res_down0 = ops.resblock_down(channels=self.ch, config=config, weight_init=self.weight_init, use_bias=False)
                 self.bn0 = BatchNormalization()
                 self.att0 = ops.Attention(ch=self.ch, config=config)
-                self.res_down1 = ops.resblock_down(channels=self.ch * 2, config=config, weight_init=self.weight_init, use_bias=False)
+                self.res_down1 = ops.resblock_down(channels=self.ch*2, config=config, weight_init=self.weight_init, use_bias=False)
                 self.res_down2 = ops.resblock_down(channels=self.ch*4, config=config, weight_init=self.weight_init, use_bias=False)
                 self.res0 = ops.resblock(channels=self.ch*4, config=config, weight_init=self.weight_init, use_bias=False)
                 self.dense0 = Dense(units=1, use_bias=True, kernel_initializer=self.weight_init)
 
     def __call__(self, inputs, label=None, training=False):
 
-        img = inputs
+        x = inputs
 
-        if label is not None:
-            label = tf.one_hot(label,depth=10)
-            label = self.dense_emb(label)
-            label = tf.reshape(label, [tf.shape(label)[0], 32, 32, -1])
-            img = tf.concat([inputs, label], axis=-1)
-
-        l1 = self.res_down0(img)
+        l1 = self.res_down0(x)
 
         # non-local layer
         l2 = self.att0(l1, training=training)
@@ -119,6 +112,11 @@ class BIGBIGAN_D_F(tf.keras.Model):
 
         output2 = self.dense0(output1)
 
+        # Projection discriminator
+        if label is not None:
+            label = self.emb(label)
+            output2 += tf.reduce_sum(label*output1, axis=-1, keepdims=True)
+
         return output1, output2
 
 
@@ -129,9 +127,9 @@ class BIGBIGAN_D_H(tf.keras.Model):
             with tf.name_scope('discriminator_h'):
                 self.weight_init = weight_init
                 self.flatten = Flatten()
-                self.res_dense0 = ops.resblock_dense(units=50, weight_init=self.weight_init, config=config)
-                self.res_dense1 = ops.resblock_dense(units=50, weight_init=self.weight_init, config=config)
-                self.res_dense2 = ops.resblock_dense(units=50, weight_init=self.weight_init, config=config)
+                self.res_dense0 = ops.resblock_dense(units=64, weight_init=self.weight_init, config=config)
+                self.res_dense1 = ops.resblock_dense(units=64, weight_init=self.weight_init, config=config)
+                self.res_dense2 = ops.resblock_dense(units=64, weight_init=self.weight_init, config=config)
                 self.dense0 = Dense(units=1, use_bias=True, kernel_initializer=self.weight_init)
 
     def __call__(self, inputs, training=False):
@@ -153,9 +151,9 @@ class BIGBIGAN_D_J(tf.keras.Model):
             with tf.name_scope('discriminator_j'):
                 self.weight_init = weight_init
                 self.flatten = Flatten()
-                self.res_dense0 = ops.resblock_dense(units=50, weight_init=self.weight_init, config=config)
-                self.res_dense1 = ops.resblock_dense(units=50, weight_init=self.weight_init, config=config)
-                self.res_dense2 = ops.resblock_dense(units=50, weight_init=self.weight_init, config=config)
+                self.res_dense0 = ops.resblock_dense(units=64, weight_init=self.weight_init, config=config)
+                self.res_dense1 = ops.resblock_dense(units=64, weight_init=self.weight_init, config=config)
+                self.res_dense2 = ops.resblock_dense(units=64, weight_init=self.weight_init, config=config)
                 self.dense0 = Dense(units=1, kernel_initializer=self.weight_init)
 
     def __call__(self, inputs_from_f, inputs_from_h, training=False):
@@ -175,7 +173,6 @@ class BIGBIGAN_D_J(tf.keras.Model):
         return output
 
 
-
 class BIGBIGAN_E(tf.keras.Model):
     # Encoder should take higher resolution than Generator and Discriminator
 
@@ -183,7 +180,7 @@ class BIGBIGAN_E(tf.keras.Model):
         super().__init__()
         with tf.device('{}:*'.format(config.device)):
             with tf.name_scope('encoder'):
-                if config.dataset == 'mnist' or config.dataset == 'fashion_mnist':  # color channel of the dataset
+                if config.dataset in ['mnist', 'fashion_mnist']:  # color channel of the dataset
                     self.c_dim = 1
                 else:
                     self.c_dim = 3
@@ -204,7 +201,7 @@ class BIGBIGAN_E(tf.keras.Model):
                 self.bot_rev4 = ops.bottleneck_rev_s(ch=self.ch * 4, weight_init=self.weight_init)
                 self.bot_rev5 = ops.bottleneck_rev_s(ch=self.ch * 4, weight_init=self.weight_init)
 
-                self.res_dense0 = ops.resblock_dense_no_sn(units=256,weight_init=self.weight_init)
+                self.res_dense0 = ops.resblock_dense_no_sn(units=256, weight_init=self.weight_init)
                 self.res_dense1 = ops.resblock_dense_no_sn(units=256, weight_init=self.weight_init)
                 self.dense0 = Dense(units=config.num_cont_noise, kernel_initializer=self.weight_init)
                 self.flatten = Flatten()

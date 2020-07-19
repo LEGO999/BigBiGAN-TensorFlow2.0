@@ -7,8 +7,8 @@ from model_small import BIGBIGAN_G, BIGBIGAN_D_F, BIGBIGAN_D_H, BIGBIGAN_D_J, BI
 
 def set_up_train(config):
     # Setup tensorflow
-    tf.config.threading.set_inter_op_parallelism_threads(4)
-    tf.config.threading.set_intra_op_parallelism_threads(4)
+    tf.config.threading.set_inter_op_parallelism_threads(8)
+    tf.config.threading.set_intra_op_parallelism_threads(8)
     physical_devices = tf.config.experimental.list_physical_devices('GPU')
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 

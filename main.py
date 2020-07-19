@@ -8,9 +8,8 @@ FLAGS = flags.FLAGS
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-
 flags.DEFINE_string("model", 'BigBiGAN', 'Model to use (BigBiGAN|')
-flags.DEFINE_string("dataset",'cifar10','Dataset (mnist|fashion_mnist|cifar10)')
+flags.DEFINE_string("dataset",'mnist','Dataset (mnist|fashion_mnist|cifar10)')
 flags.DEFINE_integer('num_classes', 10, 'Numbers of classes in the dataset')
 flags.DEFINE_string('dataset_path', './tensorflow_datasets','Path for saving dataset.')
 flags.DEFINE_string('result_path', './results','Path for saving results.')
@@ -31,13 +30,13 @@ flags.DEFINE_float('lr_disc',2e-4,'Learning rate discriminator.')
 flags.DEFINE_float('beta_1_disc',0.5,'Beta_1 of Discriminator optimizer.')
 flags.DEFINE_float('beta_2_disc',0.999,'Beta_2 of discriminator optimizer.')
 
-flags.DEFINE_integer('D_G_ratio', 1, 'Ratio of upgrading weights, discriminator VS generator & encoder')
+flags.DEFINE_integer('D_G_ratio', 2, 'Ratio of upgrading weights, discriminator VS generator & encoder')
 
 flags.DEFINE_integer('num_epochs', 50 ,'Number of epochs to train.')
 
 flags.DEFINE_integer('num_cont_noise', 100, 'Dimension of continous noise vector.')
 flags.DEFINE_bool('conditional', True, 'Conditional or unconditional GAN')
-flags.DEFINE_integer('num_emb', 10, 'Dimension of embedded label output. Only applicable when conditional')
+flags.DEFINE_integer('num_emb', 32, 'Dimension of embedded label output. Only applicable when conditional')
 
 
 def main(argv):
