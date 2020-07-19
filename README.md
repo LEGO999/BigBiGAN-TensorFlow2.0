@@ -29,8 +29,7 @@ MNIST, Fashion-MNIST and CIFAR10.
 Conditional GAN will use the labels in the corresponding dataset to generate class-specific images.
 ### Channels und batch size:
 Change them to fit in your GPU according to your VRAM(>=6 GB recommended).  
-## Known Issue
-Encoder may not work properly and and map generated images to the same latent vector.(Stochatic encoder may help)
+
 ## Conditional generation examples
 MNIST
 ![mnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/mnist2.png)
@@ -41,6 +40,8 @@ CIFAR10
 ## To do list
 Stochastic encoder
 ~~Projection discriminator~~
+## Known Issue
+Encoder may not work properly and and map generated images to the same latent vector.(Stochatic encoder may help)
 ## Reference
 BigGAN https://github.com/taki0112/BigGAN-Tensorflow  
 RevNet https://github.com/google/revisiting-self-supervised
