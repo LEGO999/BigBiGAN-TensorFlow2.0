@@ -16,7 +16,7 @@ Numpy 1.17
 ![biggan](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/Screenshot%20from%202020-02-23%2017-02-01.png)
 Discriminator F and Generator G come from BigGAN.
 There are 3 residual blocks in G and 4 residual blocks in F.  
-Discriminator H und J are 6-layer MLP(units=50) with skip-connection.  
+Discriminator H und J are 6-layer MLP(units=64) with skip-connection.  
 ### Encoder
 As suggested in the paper, take higher resolution input (64 x 64) and RevNet(13-layers) as backend.  
 After RevNet, a 4-layer MLP(Unit=256) is taken.  
@@ -30,16 +30,18 @@ Conditional GAN will use the labels in the corresponding dataset to generate cla
 ### Channels und batch size:
 Change them to fit in your GPU according to your VRAM(>=6 GB recommended).  
 ## Known Issue
-Conditional GAN is for the time being slightly unstable.
+Encoder may not work properly and and map generated images to the same latent vector.(Stochatic encoder may help)
 ## Conditional generation examples
 MNIST
-![mnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/mnist1.png)
+![mnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/mnist2.png)
 Fashion-MNIST
-![mnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/fmnist1.png)
+![fmnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/fmnist-22.png)
+CIFAR10
+![cifar10](https://github.com/LEGO999/BigBiGAN-TensorFlow2.0/blob/master/fig/cifar10-con-49.png)
 ## To do list
 Stochastic encoder
-Projection discriminator
-## Acknowledegement
+~~Projection discriminator~~
+## Reference
 BigGAN https://github.com/taki0112/BigGAN-Tensorflow  
 RevNet https://github.com/google/revisiting-self-supervised
 
