@@ -37,9 +37,9 @@ Fashion-MNIST
 ![fmnist](https://github.com/LEGO999/BIgBiGAN/blob/master/fig/fmnist-22.png)
 CIFAR10
 ![cifar10](https://github.com/LEGO999/BigBiGAN-TensorFlow2.0/blob/master/fig/cifar10-con-49.png)
-## To do list
-Stochastic encoder
-~~Projection discriminator~~
+## TODO
+- [ ] Stochastic encoder
+- [x] Projection discriminator
 ## Known Issue
 Encoder may not work properly and and map generated images to the same latent vector.(Stochatic encoder may help)
 ## Reference
